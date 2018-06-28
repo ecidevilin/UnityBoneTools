@@ -26,7 +26,7 @@ public class ShadeMode : Editor
             if (null != view)
             {
                 Shader VertexColor = Shader.Find("Hidden/VertexColor");
-                view.SetSceneViewShaderReplace(VertexColor, null);
+                view.SetSceneViewShaderReplace(VertexColor, "RenderType");
             }
             Selection.selectionChanged += SceneViewCustomSceneMode;
         }
@@ -60,6 +60,7 @@ public class ShadeMode : Editor
                     }
                 }
             }
+            SkinnedMeshRenderer selectedRenderer = null;
             if (affectedSkins.Count > 0)
             {
                 foreach (var sr in skins)
@@ -101,28 +102,27 @@ public class ShadeMode : Editor
                     mesh.UploadMeshData(false);
                 }
             }
-            else if (_selected)
+            else if (null != selected && null != (selectedRenderer = selected.GetComponent<SkinnedMeshRenderer>()))
             {
+
                 foreach (var sr in skins)
                 {
                     Mesh mesh = (sr.sharedMesh);
-                    if (mesh.boneWeights.Length == 0)
-                    {
-                        continue;
-                    }
-                    List<Vector4> uv2 = new List<Vector4>(mesh.vertexCount);
                     List<Color> colors = new List<Color>(mesh.vertexCount);
-                    for (int i = 0, imax = mesh.vertexCount; i < imax; i++)
+                    List<Vector4> uv2 = new List<Vector4>(mesh.vertexCount);
+                    if (sr == selectedRenderer && mesh.boneWeights.Length > 0)
                     {
-                        uv2.Add(new Vector4(mesh.boneWeights[i].boneIndex0, mesh.boneWeights[i].boneIndex1, mesh.boneWeights[i].boneIndex2, mesh.boneWeights[i].boneIndex3));
-                        colors.Add(new Color(mesh.boneWeights[i].weight0, mesh.boneWeights[i].weight1, mesh.boneWeights[i].weight2, mesh.boneWeights[i].weight3));
+                        for (int i = 0, imax = mesh.vertexCount; i < imax; i++)
+                        {
+                            uv2.Add(new Vector4(mesh.boneWeights[i].boneIndex0, mesh.boneWeights[i].boneIndex1, mesh.boneWeights[i].boneIndex2, mesh.boneWeights[i].boneIndex3));
+                            colors.Add(new Color(mesh.boneWeights[i].weight0, mesh.boneWeights[i].weight1, mesh.boneWeights[i].weight2, mesh.boneWeights[i].weight3));
+                        }
                     }
                     mesh.SetUVs(2, uv2);
                     mesh.SetColors(colors);
                     mesh.UploadMeshData(false);
                 }
             }
-            _selected = affectedSkins.Count > 0;
         }
     }
 
