@@ -126,6 +126,29 @@ public class ShadeMode : Editor
         }
     }
 
+    [UnityEditor.Callbacks.DidReloadScripts]
+    static void DidReloadScripts()
+    {
+        GC.Collect();
+        Resources.UnloadUnusedAssets();
+        ArrayList views = SceneView.sceneViews;
+        SkinnedMeshRenderer[] skins = Editor.FindObjectsOfType<SkinnedMeshRenderer>();
+        HashSet<string> pathSet = new HashSet<string>();
+        foreach (var sr in skins)
+        {
+            pathSet.Add(AssetDatabase.GetAssetPath(sr.sharedMesh));
+        }
+        foreach (var path in pathSet)
+        {
+
+            AssetDatabase.ImportAsset(path);
+        }
+        foreach (var view in views)
+        {
+            (view as SceneView).SetSceneViewShaderReplace(null, null);
+        }
+    }
+
     static void SceneViewClearSceneView()
     {
         GC.Collect();
