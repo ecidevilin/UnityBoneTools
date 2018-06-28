@@ -7,7 +7,6 @@ using UnityEngine;
 public class ShadeMode : Editor
 {
     private static bool _active = false;
-    private static bool _selected = true;
     [MenuItem("Tools/BoneMode", true)]
     static bool ValidateSceneViewCustomSceneMode()
     {
@@ -29,6 +28,7 @@ public class ShadeMode : Editor
                 view.SetSceneViewShaderReplace(VertexColor, null);
             }
             Selection.selectionChanged += SceneViewCustomSceneMode;
+            EditorApplication.quitting += SceneViewClearSceneView;
         }
         else
         {
@@ -43,7 +43,7 @@ public class ShadeMode : Editor
         if (null != view)
         {
             Transform selected = Selection.activeTransform;
-            SkinnedMeshRenderer[] skins = FindObjectsOfType<SkinnedMeshRenderer>();
+            SkinnedMeshRenderer[] skins = Editor.FindObjectsOfType<SkinnedMeshRenderer>();
             List<SkinnedMeshRenderer> affectedSkins = new List<SkinnedMeshRenderer>();
             List<int> boneIndices = new List<int>();
             if (selected != null)
@@ -134,7 +134,7 @@ public class ShadeMode : Editor
         SceneView view = SceneView.lastActiveSceneView;
         if (null != view)
         {
-            SkinnedMeshRenderer[] skins = FindObjectsOfType<SkinnedMeshRenderer>();
+            SkinnedMeshRenderer[] skins = Editor.FindObjectsOfType<SkinnedMeshRenderer>();
             HashSet<string> pathSet = new HashSet<string>();
             foreach (var sr in skins)
             {
