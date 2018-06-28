@@ -127,7 +127,6 @@ public class ShadeMode : Editor
     }
 
     static void SceneViewClearSceneView()
-
     {
         GC.Collect();
         Resources.UnloadUnusedAssets();
@@ -145,8 +144,7 @@ public class ShadeMode : Editor
 
                 AssetDatabase.ImportAsset(path);
             }
-                view.SetSceneViewShaderReplace(null, null);
+            view.SetSceneViewShaderReplace(null, null);
         }
-
     }
 }
