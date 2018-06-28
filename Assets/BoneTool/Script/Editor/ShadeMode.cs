@@ -26,7 +26,7 @@ public class ShadeMode : Editor
             if (null != view)
             {
                 Shader VertexColor = Shader.Find("Hidden/VertexColor");
-                view.SetSceneViewShaderReplace(VertexColor, "RenderType");
+                view.SetSceneViewShaderReplace(VertexColor, null);
             }
             Selection.selectionChanged += SceneViewCustomSceneMode;
         }
