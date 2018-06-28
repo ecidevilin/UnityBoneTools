@@ -73,19 +73,19 @@ public class ShadeMode : Editor
                             BoneWeight bws = mesh.boneWeights[j];
                             if (bws.boneIndex0 == bone)
                             {
-                                col.r = bws.weight0;
+                                col = bws.weight0 * Color.red;
                             }
-                            if (bws.boneIndex1 == bone)
+                            else if (bws.boneIndex1 == bone)
                             {
-                                col.g = bws.weight1;
+                                col = bws.weight1 * Color.green;
                             }
-                            if (bws.boneIndex2 == bone)
+                            else if (bws.boneIndex2 == bone)
                             {
-                                col.b = bws.weight2;
+                                col = bws.weight2 * Color.blue;
                             }
-                            if (bws.boneIndex3 == bone)
+                            else if (bws.boneIndex3 == bone)
                             {
-                                col.a = bws.weight3;
+                                col = bws.weight3 * Color.yellow;
                             }
                         }
                         colors.Add(col);
