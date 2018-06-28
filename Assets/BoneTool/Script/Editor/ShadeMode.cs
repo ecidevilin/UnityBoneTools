@@ -7,6 +7,7 @@ using UnityEngine;
 public class ShadeMode : Editor
 {
     private static bool _active = false;
+    private static bool _selected = true;
     [MenuItem("Tools/BoneMode", true)]
     static bool ValidateSceneViewCustomSceneMode()
     {
@@ -21,6 +22,12 @@ public class ShadeMode : Editor
         if (_active)
         {
             SceneViewCustomSceneMode();
+            SceneView view = SceneView.lastActiveSceneView;
+            if (null != view)
+            {
+                Shader VertexColor = Shader.Find("Hidden/VertexColor");
+                view.SetSceneViewShaderReplace(VertexColor, null);
+            }
             Selection.selectionChanged += SceneViewCustomSceneMode;
         }
         else
@@ -94,7 +101,7 @@ public class ShadeMode : Editor
                     mesh.UploadMeshData(false);
                 }
             }
-            else
+            else if (_selected)
             {
                 foreach (var sr in skins)
                 {
@@ -115,8 +122,7 @@ public class ShadeMode : Editor
                     mesh.UploadMeshData(false);
                 }
             }
-            Shader VertexColor = Shader.Find("Hidden/VertexColor");
-            view.SetSceneViewShaderReplace(VertexColor, null);
+            _selected = affectedSkins.Count > 0;
         }
     }
 
