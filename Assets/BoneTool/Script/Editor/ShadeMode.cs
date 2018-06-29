@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class ShadeMode : Editor
 {
-    private static bool _active = false;
+    private static bool _active;
     [MenuItem("Tools/BoneMode", true)]
     static bool ValidateSceneViewCustomSceneMode()
     {
@@ -125,29 +125,29 @@ public class ShadeMode : Editor
             }
         }
     }
+    //
+    //[UnityEditor.Callbacks.DidReloadScripts]
+    //static void DidReloadScripts()
+    //{
+    //    GC.Collect();
+    //    Resources.UnloadUnusedAssets();
+    //    ArrayList views = SceneView.sceneViews;
+    //    SkinnedMeshRenderer[] skins = Editor.FindObjectsOfType<SkinnedMeshRenderer>();
+    //    HashSet<string> pathSet = new HashSet<string>();
+    //    foreach (var sr in skins)
+    //    {
+    //        pathSet.Add(AssetDatabase.GetAssetPath(sr.sharedMesh));
+    //    }
+    //    foreach (var path in pathSet)
+    //    {
 
-    [UnityEditor.Callbacks.DidReloadScripts]
-    static void DidReloadScripts()
-    {
-        GC.Collect();
-        Resources.UnloadUnusedAssets();
-        ArrayList views = SceneView.sceneViews;
-        SkinnedMeshRenderer[] skins = Editor.FindObjectsOfType<SkinnedMeshRenderer>();
-        HashSet<string> pathSet = new HashSet<string>();
-        foreach (var sr in skins)
-        {
-            pathSet.Add(AssetDatabase.GetAssetPath(sr.sharedMesh));
-        }
-        foreach (var path in pathSet)
-        {
-
-            AssetDatabase.ImportAsset(path);
-        }
-        foreach (var view in views)
-        {
-            (view as SceneView).SetSceneViewShaderReplace(null, null);
-        }
-    }
+    //        AssetDatabase.ImportAsset(path);
+    //    }
+    //    foreach (var view in views)
+    //    {
+    //        (view as SceneView).SetSceneViewShaderReplace(null, null);
+    //    }
+    //}
 
     static void SceneViewClearSceneView()
     {
