@@ -75,25 +75,36 @@ public class ShadeMode : Editor
                     List<Color> colors = new List<Color>(mesh.vertexCount);
                     for (int j = 0, jmax = mesh.vertexCount; j < jmax; j++)
                     {
-                        Color col = new Color(0,0,0,0);
+                        Color col = Color.black;
                         if (mesh.boneWeights.Length > 0 && bone >= 0)
                         {
                             BoneWeight bws = mesh.boneWeights[j];
+                            float weight = 0;
                             if (bws.boneIndex0 == bone)
                             {
-                                col = bws.weight0 * Color.red;
+                                weight = bws.weight0;
                             }
                             else if (bws.boneIndex1 == bone)
                             {
-                                col = bws.weight1 * Color.green;
+                                weight = bws.weight1;
                             }
                             else if (bws.boneIndex2 == bone)
                             {
-                                col = bws.weight2 * Color.blue;
+                                weight = bws.weight2;
                             }
                             else if (bws.boneIndex3 == bone)
                             {
-                                col = bws.weight3 * Color.yellow;
+                                weight = bws.weight3;
+                            }
+                            if (weight > 0.5f)
+                            {
+                                float bld = weight*2 - 1;
+                                col = Color.red*bld + Color.yellow*(1 - bld);
+                            }
+                            else if (weight > 0)
+                            {
+                                float bld = weight*2;
+                                col = Color.yellow*bld + Color.blue*(1 - bld);
                             }
                         }
                         colors.Add(col);
