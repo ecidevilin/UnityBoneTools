@@ -107,6 +107,7 @@ public class ShadeMode : Editor
                                 col = Color.yellow*bld + Color.blue*(1 - bld);
                             }
                         }
+                        col.a = 0.5f;//for shader
                         colors.Add(col);
                     }
                     mesh.SetColors(colors);

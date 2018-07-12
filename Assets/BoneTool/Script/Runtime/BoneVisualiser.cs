@@ -1,6 +1,7 @@
 ﻿#if UNITY_EDITOR
 using System;
 using System.Linq;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -9,7 +10,6 @@ namespace BoneTool.Script.Runtime
     [ExecuteInEditMode]
     public class BoneVisualiser : MonoBehaviour
     {
-        public SkinnedMeshRenderer Renderer;
         public float BoneGizmosSize = 0.01f;
         public Color BoneColor = Color.white;
         public bool HideRoot;
@@ -17,7 +17,7 @@ namespace BoneTool.Script.Runtime
 
         private Transform _preRootNode;
         private Transform[] _childNodes;
-        private BoneTransform[] _previousTransforms;
+        private List<BoneTransform> _previousTransforms;
         private Transform _rootNode;
 
         public Transform[] GetChildNodes() {
@@ -41,7 +41,7 @@ namespace BoneTool.Script.Runtime
 
         private void OnScene(SceneView sceneview) {
             if (_rootNode != null && Selection.activeTransform != null) {
-                if (_childNodes == null || _childNodes.Length == 0 || _previousTransforms == null || _previousTransforms.Length == 0)
+                if (_childNodes == null || _childNodes.Length == 0 || _previousTransforms == null || _previousTransforms.Count == 0)
                     PopulateChildren();
 
                 Handles.color = BoneColor;
@@ -63,7 +63,8 @@ namespace BoneTool.Script.Runtime
                     {
                         Handles.color = Color.red;
                     }
-                    if (Handles.Button(node.transform.position, Quaternion.identity, BoneGizmosSize, BoneGizmosSize, Handles.SphereHandleCap)) {
+                    if (Handles.Button(node.transform.position, Quaternion.LookRotation(end-start), BoneGizmosSize, BoneGizmosSize, Handles.ConeHandleCap))
+                    {
                         Selection.activeGameObject = node.gameObject;
                     }
                     Handles.color = BoneColor;
@@ -78,15 +79,34 @@ namespace BoneTool.Script.Runtime
             }
         }
 
-        public void PopulateChildren() {
-            if (!Renderer) return;
-            _rootNode = Renderer.rootBone;
+        public void PopulateChildren()
+        {
+            SkinnedMeshRenderer[] skins = GetComponentsInChildren<SkinnedMeshRenderer>();
+            _rootNode = null;
+            foreach (var skin in skins)
+            {
+                if (_rootNode != null)
+                {
+                    if (_rootNode.IsChildOf(skin.rootBone))
+                    {
+                        _rootNode = skin.rootBone;
+                    }
+                }
+                else
+                {
+                    _rootNode = skin.rootBone;
+                }
+            }
             _preRootNode = _rootNode;
-            _childNodes = Renderer.bones;//_rootNode.GetComponentsInChildren<Transform>();
-            _previousTransforms = new BoneTransform[_childNodes.Length];
+            _childNodes = _rootNode.GetComponentsInChildren<Transform>();
+            _previousTransforms = new List<BoneTransform>(_childNodes.Length);
             for (var i = 0; i < _childNodes.Length; i++) {
                 var childNode = _childNodes[i];
-                _previousTransforms[i] = new BoneTransform(childNode, childNode.localPosition);
+                if (childNode.GetComponent<Renderer>() != null)
+                {
+                    continue;
+                }
+                _previousTransforms.Add(new BoneTransform(childNode, childNode.localPosition));
             }
         }
 

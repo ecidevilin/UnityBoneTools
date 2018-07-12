@@ -14,10 +14,10 @@ namespace BoneTool.Script.Editor
             serializedObject.Update();
 
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("Renderer"));
-            if (EditorGUI.EndChangeCheck()) {
-                SceneView.RepaintAll();
-            }
+            //EditorGUILayout.PropertyField(serializedObject.FindProperty("Renderer"));
+            //if (EditorGUI.EndChangeCheck()) {
+            //    SceneView.RepaintAll();
+            //}
             if (GUILayout.Button("Recalculate")) {
                 visualiser.PopulateChildren();
                 SceneView.RepaintAll();
