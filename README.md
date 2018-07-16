@@ -17,4 +17,4 @@ You should click the button "Recalculate". You will see bones as below.
 
 You can either click a GameObject in the Hierarchy or a cone in the Scene. Then you will see the selected bone and its children colored.
 
-NOTE: This feature refers from  ![BoneTool-Bone Visualizer](https://assetstore.unity.com/packages/tools/utilities/bonetool-bone-visualizer-99464)
+NOTE: This feature refers from  [BoneTool-Bone Visualizer]:https://assetstore.unity.com/packages/tools/utilities/bonetool-bone-visualizer-99464
