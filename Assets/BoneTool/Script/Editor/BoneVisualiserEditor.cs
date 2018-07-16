@@ -24,6 +24,8 @@ namespace BoneTool.Script.Editor
             }
             EditorGUILayout.PropertyField(serializedObject.FindProperty("BoneGizmosSize"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("BoneColor"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("SelectedColor"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("SelectedChildrenColor"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("HideRoot"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("EnableConstraint"));
 

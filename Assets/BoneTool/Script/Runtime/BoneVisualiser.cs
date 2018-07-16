@@ -12,6 +12,8 @@ namespace BoneTool.Script.Runtime
     {
         public float BoneGizmosSize = 0.01f;
         public Color BoneColor = Color.white;
+        public Color SelectedColor = Color.red;
+        public Color SelectedChildrenColor = Color.magenta;
         public bool HideRoot;
         public bool EnableConstraint = true;
 
@@ -57,24 +59,28 @@ namespace BoneTool.Script.Runtime
 
                     if (Selection.activeGameObject == node.gameObject)
                     {
-                        Handles.color = Color.magenta;
+                        Handles.color = SelectedColor;
                     }
                     else if (children.Contains(node))
                     {
-                        Handles.color = Color.red;
+                        Handles.color = SelectedChildrenColor;
                     }
                     if (Handles.Button(node.transform.position, Quaternion.LookRotation(end-start), BoneGizmosSize, BoneGizmosSize, Handles.ConeHandleCap))
                     {
                         Selection.activeGameObject = node.gameObject;
                     }
-                    Handles.color = BoneColor;
+                    Matrix4x4 matr = Handles.matrix;
+                    Handles.matrix = Matrix4x4.TRS(start + (end - start) / 2, Quaternion.LookRotation(end - start), Vector3.one);
+                    Handles.DrawWireCube(Vector3.zero, new Vector3(BoneGizmosSize, BoneGizmosSize, (end - start).magnitude));
+                    Handles.matrix = matr;
 
                     if (HideRoot && node.parent == _preRootNode) continue;
-
                     if (node.transform.parent.childCount == 1)
                         Handles.DrawAAPolyLine(5f, start, end);
                     else
-                        Handles.DrawDottedLine(start, end, 0.5f);
+                        Handles.DrawDottedLine(start, end, 5f);
+
+                    Handles.color = BoneColor;
                 }
             }
         }
