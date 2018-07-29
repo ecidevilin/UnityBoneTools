@@ -28,7 +28,9 @@ public class ShadeMode : Editor
                 view.SetSceneViewShaderReplace(VertexColor, null);
             }
             Selection.selectionChanged += SceneViewCustomSceneMode;
+			#if UNITY_2018_1_OR_NEWER
             EditorApplication.quitting += SceneViewClearSceneView;
+			#endif
         }
         else
         {
