@@ -34,6 +34,7 @@
     			float4  pos : SV_POSITION;
     			float4  color : COLOR0;
     			float3 dist : TEXCOORD1;
+    			float3 vd : TEXCOORD2;
 			};
 			
 			v2g vert (appdata v)
@@ -66,16 +67,19 @@
 				OUT.pos = IN[0].pos;
 				OUT.color = IN[0].color;
 				OUT.dist = float3(area/length(v0),0,0);
+				OUT.vd = float3(1,0,0);
 				triStream.Append(OUT);
 
 				OUT.pos = IN[1].pos;
 				OUT.color = IN[1].color;
 				OUT.dist = float3(0,area/length(v1),0);
+				OUT.vd = float3(0,1,0);
 				triStream.Append(OUT);
 
 				OUT.pos = IN[2].pos;
 				OUT.color = IN[2].color;
 				OUT.dist = float3(0,0,area/length(v2));
+				OUT.vd = float3(0,0,1);
 				triStream.Append(OUT);
 				
 			}
@@ -84,8 +88,10 @@
 			{
 				//distance of frag from triangles center
 				float d = min(IN.dist.x, min(IN.dist.y, IN.dist.z));
+				float vd = max(IN.vd.x, max(IN.vd.y, IN.vd.z));
 				//fade based on dist from center
  				float I = exp2(-4.0*d*d);
+ 				I += step(0.9, vd);
  				
  				return lerp(fixed4(0,0,0,0), IN.color, I);	
 //				return i.color * step(i.color.a, 0.99);
