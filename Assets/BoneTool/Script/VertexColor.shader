@@ -11,7 +11,7 @@
 		Pass
 		{
 			CGPROGRAM
-			#pragma target 4.0
+			#pragma target 4.5
 			#pragma vertex vert
 			#pragma geometry geom
 			#pragma fragment frag
@@ -37,11 +37,13 @@
     			float3 vd : TEXCOORD2;
 			};
 			
-			v2g vert (appdata v)
+
+			StructuredBuffer<float4> boneColors;
+			v2g vert (float4 vertex : POSITION, uint vid : SV_VertexID)
 			{
 				v2g o;
-				o.pos = UnityObjectToClipPos(v.vertex);
-				o.color = v.color;
+				o.pos = UnityObjectToClipPos(vertex);
+				o.color = boneColors[vid];
 				return o;
 			}
 			
@@ -92,7 +94,6 @@
 				//fade based on dist from center
  				float I = exp2(-4.0*d*d);
  				I += step(0.9, vd);
- 				
  				return lerp(fixed4(0,0,0,0), IN.color, I);	
 //				return i.color * step(i.color.a, 0.99);
 			}

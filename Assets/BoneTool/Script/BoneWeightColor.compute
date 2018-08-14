@@ -1,0 +1,66 @@
+﻿
+#pragma kernel BoneWeights
+#pragma kernel BoneColors
+
+struct BoneWeight
+{
+	float4 weights;
+	int4 boneIndices;
+};
+RWStructuredBuffer<BoneWeight> boneWeights;
+RWStructuredBuffer<float4> colors;
+int selected;
+int total;
+[numthreads(8,1,1)]
+void BoneColors (uint3 id : SV_DispatchThreadID)
+{
+	if (id.x > total)
+	{
+		return;
+	}
+	BoneWeight bw = boneWeights[id.x];
+	float weight = 0;
+	float4 col = float4(0,0,0,1);
+	if (-1 == selected)
+	{
+		weight = 0;
+	}
+	else if (bw.boneIndices.x == selected)
+	{
+		weight = bw.weights.x;
+	}
+	else if (bw.boneIndices.y == selected)
+	{
+		weight = bw.weights.y;
+	}
+	else if (bw.boneIndices.z == selected)
+	{
+		weight = bw.weights.z;
+	}
+	else if (bw.boneIndices.w == selected)
+	{
+		weight = bw.weights.w;
+	}
+	if (weight > 0.5)
+	{
+		float bld = weight * 2 - 1;
+		col.xyz = float3(1,0,0) * bld + float3(1,1,0) * (1 - bld);
+	}
+	else if (weight > 0)
+	{
+		float bld = weight * 2;
+		col.xyz = float3(1,1,0) * bld + float3(0,0,1) * (1 - bld);
+	}
+	colors[id.x] = col;
+}
+
+[numthreads(8,1,1)]
+void BoneWeights (uint3 id : SV_DispatchThreadID)
+{
+	if (id.x > total)
+	{
+		return;
+	}
+	BoneWeight bw = boneWeights[id.x];
+	colors[id.x] = bw.weights * selected;
+}

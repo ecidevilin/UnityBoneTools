@@ -4,9 +4,12 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
+
 public class ShadeMode : Editor
 {
     private static bool _active;
+    private static ComputeShader _compute;
+    private static List<BoneColorDrawerEditor> _drawers = new List<BoneColorDrawerEditor>();
     [MenuItem("Tools/BoneMode", true)]
     static bool ValidateSceneViewCustomSceneMode()
     {
@@ -20,17 +23,22 @@ public class ShadeMode : Editor
         _active = !_active;
         if (_active)
         {
-            SceneViewCustomSceneMode();
             SceneView view = SceneView.lastActiveSceneView;
             if (null != view)
             {
                 Shader VertexColor = Shader.Find("Hidden/VertexColor");
                 view.SetSceneViewShaderReplace(VertexColor, null);
             }
+            if (null == _compute)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(AssetDatabase.FindAssets("BoneWeightColor")[0]);
+                _compute = AssetDatabase.LoadMainAssetAtPath(path) as ComputeShader;
+            }
             Selection.selectionChanged += SceneViewCustomSceneMode;
 			#if UNITY_2018_1_OR_NEWER
             EditorApplication.quitting += SceneViewClearSceneView;
-			#endif
+            #endif
+            SceneViewCustomSceneMode();
         }
         else
         {
@@ -42,101 +50,23 @@ public class ShadeMode : Editor
     static void SceneViewCustomSceneMode()
     {
         SceneView view = SceneView.lastActiveSceneView;
-        if (null != view)
+        Transform selected = Selection.activeTransform;
+        if (null != view || null != selected)
         {
-            Transform selected = Selection.activeTransform;
+            foreach (var drawer in _drawers)
+            {
+                drawer.Dispose();
+            }
+            _drawers.Clear();
             SkinnedMeshRenderer[] skins = Editor.FindObjectsOfType<SkinnedMeshRenderer>();
-            List<SkinnedMeshRenderer> affectedSkins = new List<SkinnedMeshRenderer>();
-            List<int> boneIndices = new List<int>();
-            if (selected != null)
-            {
 
-                foreach (var sr in skins)
-                {
-                    Transform[] bones = sr.bones;
-                    int idx = ArrayUtility.IndexOf(bones, selected);
-                    if (idx >= 0)
-                    {
-                        affectedSkins.Add(sr);
-                        boneIndices.Add(idx);
-                    }
-                }
-            }
-            SkinnedMeshRenderer selectedRenderer = null;
-            if (affectedSkins.Count > 0)
+            for (int i = 0; i < skins.Length; i++)
             {
-                foreach (var sr in skins)
-                {
-                    int idx = affectedSkins.IndexOf(sr);
-                    int bone = -1;
-                    if (idx >= 0)
-                    {
-                        bone = boneIndices[idx];
-                    }
-                    Mesh mesh = (sr.sharedMesh);
-                    List<Color> colors = new List<Color>(mesh.vertexCount);
-                    for (int j = 0, jmax = mesh.vertexCount; j < jmax; j++)
-                    {
-                        Color col = Color.black;
-                        if (mesh.boneWeights.Length > 0 && bone >= 0)
-                        {
-                            BoneWeight bws = mesh.boneWeights[j];
-                            float weight = 0;
-                            if (bws.boneIndex0 == bone)
-                            {
-                                weight = bws.weight0;
-                            }
-                            else if (bws.boneIndex1 == bone)
-                            {
-                                weight = bws.weight1;
-                            }
-                            else if (bws.boneIndex2 == bone)
-                            {
-                                weight = bws.weight2;
-                            }
-                            else if (bws.boneIndex3 == bone)
-                            {
-                                weight = bws.weight3;
-                            }
-                            if (weight > 0.5f)
-                            {
-                                float bld = weight*2 - 1;
-                                col = Color.red*bld + Color.yellow*(1 - bld);
-                            }
-                            else if (weight > 0)
-                            {
-                                float bld = weight*2;
-                                col = Color.yellow*bld + Color.blue*(1 - bld);
-                            }
-                        }
-                        col.a = 0.5f;//for shader
-                        colors.Add(col);
-                    }
-                    mesh.SetColors(colors);
-                    mesh.UploadMeshData(false);
-                }
+                BoneColorDrawerEditor drawer = new BoneColorDrawerEditor(skins[i], _compute);
+                drawer.Draw(selected);
+                _drawers.Add(drawer);
             }
-            else if (null != selected && null != (selectedRenderer = selected.GetComponent<SkinnedMeshRenderer>()))
-            {
-
-                foreach (var sr in skins)
-                {
-                    Mesh mesh = (sr.sharedMesh);
-                    List<Color> colors = new List<Color>(mesh.vertexCount);
-                    List<Vector4> uv2 = new List<Vector4>(mesh.vertexCount);
-                    if (sr == selectedRenderer && mesh.boneWeights.Length > 0)
-                    {
-                        for (int i = 0, imax = mesh.vertexCount; i < imax; i++)
-                        {
-                            uv2.Add(new Vector4(mesh.boneWeights[i].boneIndex0, mesh.boneWeights[i].boneIndex1, mesh.boneWeights[i].boneIndex2, mesh.boneWeights[i].boneIndex3));
-                            colors.Add(new Color(mesh.boneWeights[i].weight0, mesh.boneWeights[i].weight1, mesh.boneWeights[i].weight2, mesh.boneWeights[i].weight3));
-                        }
-                    }
-                    mesh.SetUVs(2, uv2);
-                    mesh.SetColors(colors);
-                    mesh.UploadMeshData(false);
-                }
-            }
+            view.Repaint();
         }
     }
     //
@@ -170,18 +100,82 @@ public class ShadeMode : Editor
         SceneView view = SceneView.lastActiveSceneView;
         if (null != view)
         {
-            SkinnedMeshRenderer[] skins = Editor.FindObjectsOfType<SkinnedMeshRenderer>();
-            HashSet<string> pathSet = new HashSet<string>();
-            foreach (var sr in skins)
+            foreach (var drawer in _drawers)
             {
-                pathSet.Add(AssetDatabase.GetAssetPath(sr.sharedMesh));
+                drawer.Dispose();
             }
-            foreach (var path in pathSet)
-            {
-
-                AssetDatabase.ImportAsset(path);
-            }
+            _drawers.Clear();
             view.SetSceneViewShaderReplace(null, null);
+            view.Repaint();
         }
+    }
+}
+
+
+public class BoneColorDrawerEditor : IDisposable
+{
+    public const int THREADS_NUM = 8;
+
+    private SkinnedMeshRenderer _skin;
+    private Mesh _mesh;
+    private Material _material;
+    private Transform[] _bones;
+    private ComputeBuffer _colorBuffer;
+    private ComputeBuffer _bwBuffer;
+    private ComputeShader _compute;
+    private int _kernelBW;
+    private int _kernelBC;
+
+    public BoneColorDrawerEditor(SkinnedMeshRenderer skin, ComputeShader compute)
+    {
+        _skin = skin;
+        _material = skin.sharedMaterial;
+        _mesh = _skin.sharedMesh;
+        _bones = _skin.bones;
+        _bwBuffer = new ComputeBuffer(_mesh.vertexCount, sizeof(int) * 4 + sizeof(float) * 4, ComputeBufferType.Default);
+        _bwBuffer.SetData(_mesh.boneWeights);
+        _colorBuffer = new ComputeBuffer(_mesh.vertexCount, sizeof(float) * 4, ComputeBufferType.Default);
+        _compute = compute;
+        _kernelBC = _compute.FindKernel("BoneColors");
+        _kernelBW = _compute.FindKernel("BoneWeights");
+    }
+
+    public void Draw(Transform selectedBoneTransform)
+    {
+        SkinnedMeshRenderer selectedSkin = selectedBoneTransform.GetComponent<SkinnedMeshRenderer>();
+        int kernel;
+        if (selectedSkin != null)
+        {
+            _compute.SetInt("selected", selectedSkin == _skin ? 1 : 0);
+            kernel = _kernelBW;
+        }
+        else
+        {
+            int sel = Array.IndexOf(_bones, selectedBoneTransform);
+            _compute.SetInt("selected", sel);
+            kernel = _kernelBC;
+        }
+        _compute.SetBuffer(kernel, "boneWeights", _bwBuffer);
+        _compute.SetBuffer(kernel, "colors", _colorBuffer);
+        _compute.SetInt("total", _mesh.vertexCount);
+        _compute.Dispatch(kernel, _mesh.vertexCount / THREADS_NUM + 1, 1, 1);
+        _material.SetBuffer("boneColors", _colorBuffer);
+    }
+
+    private bool _disposed;
+
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+        
+        _bwBuffer.Dispose();
+        _colorBuffer.Dispose();
+        _skin = null;
+
+        _disposed = true;
+        GC.SuppressFinalize(this);
     }
 }
