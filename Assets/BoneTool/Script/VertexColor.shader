@@ -18,12 +18,6 @@
 			
 			#include "UnityCG.cginc"
 
-			struct appdata
-			{
-				float4 vertex : POSITION;
-				float4 color : COLOR0;
-			};
-
 			struct v2g
 			{
 				float4 pos : SV_POSITION;
@@ -47,7 +41,7 @@
 				return o;
 			}
 			
-			[maxvertexcount(12)]
+			[maxvertexcount(3)]
 			void geom(triangle v2g IN[3], inout TriangleStream<g2f> triStream)
 			{
 			
@@ -95,7 +89,6 @@
  				float I = exp2(-4.0*d*d);
  				I += step(0.9, vd);
  				return lerp(fixed4(0,0,0,0), IN.color, I);	
-//				return i.color * step(i.color.a, 0.99);
 			}
 			ENDCG
 		}

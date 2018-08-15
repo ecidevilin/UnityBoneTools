@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using BoneTool.Script.Runtime;
 using UnityEditor;
 using UnityEngine;
 
@@ -39,11 +40,22 @@ public class ShadeMode : Editor
             EditorApplication.quitting += SceneViewClearSceneView;
             #endif
             SceneViewCustomSceneMode();
+            //BoneDrawer drawer;
+            //while ((drawer = view.camera.gameObject.GetComponent<BoneDrawer>()) != null)
+            //{
+            //    GameObject.DestroyImmediate(drawer);
+            //}
+            //drawer = view.camera.gameObject.AddComponent<BoneDrawer>();
         }
         else
         {
             SceneViewClearSceneView();
             Selection.selectionChanged -= SceneViewCustomSceneMode;
+            //SceneView view = SceneView.lastActiveSceneView;
+            //if (null != view)
+            //{
+            //    GameObject.DestroyImmediate(view.camera.gameObject.GetComponent<BoneDrawer>());
+            //}
         }
     }
 
@@ -142,6 +154,10 @@ public class BoneColorDrawerEditor : IDisposable
 
     public void Draw(Transform selectedBoneTransform)
     {
+        if (selectedBoneTransform == null)
+        {
+            return;
+        }
         SkinnedMeshRenderer selectedSkin = selectedBoneTransform.GetComponent<SkinnedMeshRenderer>();
         int kernel;
         if (selectedSkin != null)
