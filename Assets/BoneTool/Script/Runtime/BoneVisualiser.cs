@@ -44,7 +44,7 @@ namespace BoneTool.Script.Runtime
                 }
             }
         }
-
+#if false
         private void OnDrawGizmos()
         {
 
@@ -53,12 +53,13 @@ namespace BoneTool.Script.Runtime
                 Gizmos.DrawMesh(_mesh, transform.position, transform.rotation, transform.lossyScale);
             }
         }
+#endif
 
         private void OnScene(SceneView sceneview) {
             if (_rootNode != null && Selection.activeTransform != null) {
                 if (_childNodes == null || _childNodes.Length == 0 || _previousTransforms == null || _previousTransforms.Count == 0)
                     PopulateChildren();
-
+#if false
                 int len = _childNodes.Length;
                 if (_material == null)
                 {
@@ -88,42 +89,45 @@ namespace BoneTool.Script.Runtime
                     _mesh.vertices = points;
                     _mesh.SetIndices(lines, MeshTopology.Lines, 0);
                 }
-                //Handles.color = BoneColor;
+#else
+                Handles.color = BoneColor;
 
-                //Transform[] children = Selection.activeTransform.GetComponentsInChildren<Transform>();
+                Transform[] children = Selection.activeTransform.GetComponentsInChildren<Transform>();
 
-                //foreach (var node in _childNodes) {
-                //    if (!node.transform.parent) continue;
-                //    if (HideRoot && node == _preRootNode) continue;
+                foreach (var node in _childNodes)
+                {
+                    if (!node.transform.parent) continue;
+                    if (HideRoot && node == _preRootNode) continue;
 
-                //    var start = node.transform.parent.position;
-                //    var end = node.transform.position;
+                    var start = node.transform.parent.position;
+                    var end = node.transform.position;
 
-                //    if (Selection.activeGameObject == node.gameObject)
-                //    {
-                //        Handles.color = SelectedColor;
-                //    }
-                //    else if (children.Contains(node))
-                //    {
-                //        Handles.color = SelectedChildrenColor;
-                //    }
-                //    if (Handles.Button(node.transform.position, Quaternion.LookRotation(end-start), BoneGizmosSize, BoneGizmosSize, Handles.ConeHandleCap))
-                //    {
-                //        Selection.activeGameObject = node.gameObject;
-                //    }
-                //    Matrix4x4 matr = Handles.matrix;
-                //    Handles.matrix = Matrix4x4.TRS(start + (end - start) / 2, Quaternion.LookRotation(end - start), Vector3.one);
-                //    Handles.DrawWireCube(Vector3.zero, new Vector3(BoneGizmosSize, BoneGizmosSize, (end - start).magnitude));
-                //    Handles.matrix = matr;
+                    if (Selection.activeGameObject == node.gameObject)
+                    {
+                        Handles.color = SelectedColor;
+                    }
+                    else if (children.Contains(node))
+                    {
+                        Handles.color = SelectedChildrenColor;
+                    }
+                    if (Handles.Button(node.transform.position, Quaternion.LookRotation(end - start), BoneGizmosSize, BoneGizmosSize, Handles.ConeHandleCap))
+                    {
+                        Selection.activeGameObject = node.gameObject;
+                    }
+                    Matrix4x4 matr = Handles.matrix;
+                    Handles.matrix = Matrix4x4.TRS(start + (end - start) / 2, Quaternion.LookRotation(end - start), Vector3.one);
+                    Handles.DrawWireCube(Vector3.zero, new Vector3(BoneGizmosSize, BoneGizmosSize, (end - start).magnitude));
+                    Handles.matrix = matr;
 
-                //    if (HideRoot && node.parent == _preRootNode) continue;
-                //    if (node.transform.parent.childCount == 1)
-                //        Handles.DrawAAPolyLine(5f, start, end);
-                //    else
-                //        Handles.DrawDottedLine(start, end, 5f);
+                    if (HideRoot && node.parent == _preRootNode) continue;
+                    if (node.transform.parent.childCount == 1)
+                        Handles.DrawAAPolyLine(5f, start, end);
+                    else
+                        Handles.DrawDottedLine(start, end, 5f);
 
-                //    Handles.color = BoneColor;
-                //}
+                    Handles.color = BoneColor;
+                }
+#endif
             }
         }
 
