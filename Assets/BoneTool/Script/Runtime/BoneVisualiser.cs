@@ -44,52 +44,11 @@ namespace BoneTool.Script.Runtime
                 }
             }
         }
-#if false
-        private void OnDrawGizmos()
-        {
-
-            if (_mesh == null)
-            {
-                Gizmos.DrawMesh(_mesh, transform.position, transform.rotation, transform.lossyScale);
-            }
-        }
-#endif
 
         private void OnScene(SceneView sceneview) {
             if (_rootNode != null && Selection.activeTransform != null) {
                 if (_childNodes == null || _childNodes.Length == 0 || _previousTransforms == null || _previousTransforms.Count == 0)
                     PopulateChildren();
-#if false
-                int len = _childNodes.Length;
-                if (_material == null)
-                {
-                    _material = new Material(Shader.Find("BoneDrawer"));
-                    _bonesMatrices = new Matrix4x4[len];
-                    for (int i = 0; i < len; i++)
-                    {
-                        _bonesMatrices[i] = transform.worldToLocalMatrix * _childNodes[i].localToWorldMatrix;
-                    }
-                    _material.SetMatrixArray("Bones", _bonesMatrices);
-                    _material.SetPass(0);
-                }
-                if (_mesh == null)
-                {
-                    _mesh = new Mesh();
-                    Vector3[] points = new Vector3[len * 2];
-                    for (int i = 0; i < len; i++)
-                    {
-                        points[i*2] = transform.worldToLocalMatrix.MultiplyPoint3x4(_childNodes[i].position);
-                        points[i * 2 + 1] = transform.worldToLocalMatrix.MultiplyPoint3x4(_childNodes[i].parent.position);
-                    }
-                    int[] lines = new int[len * 2];
-                    for (int i = 0; i < len * 2; i++)
-                    {
-                        lines[i] = i;
-                    }
-                    _mesh.vertices = points;
-                    _mesh.SetIndices(lines, MeshTopology.Lines, 0);
-                }
-#else
                 Handles.color = BoneColor;
 
                 Transform[] children = Selection.activeTransform.GetComponentsInChildren<Transform>();
@@ -127,7 +86,6 @@ namespace BoneTool.Script.Runtime
 
                     Handles.color = BoneColor;
                 }
-#endif
             }
         }
 
