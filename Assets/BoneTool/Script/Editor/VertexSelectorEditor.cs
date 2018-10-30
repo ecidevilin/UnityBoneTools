@@ -88,9 +88,15 @@ public class VertexSelectorEditor : Editor
         ip = ray.origin + x * ray.direction;
         if (x > 0 && x < maxDist)
         {
-            Vector3 p0 = ip - v0;
-            Vector3 p1 = ip - v1;
-            Vector3 p2 = ip - v2;
+            Vector3 p0 = (ip - v0).normalized;
+            Vector3 p1 = (ip - v1).normalized;
+            Vector3 p2 = (ip - v2).normalized;
+            if (Mathf.Approximately(-1, Vector3.Dot(p0, p1)) ||
+                Mathf.Approximately(-1, Vector3.Dot(p1, p2)) ||
+                Mathf.Approximately(-1, Vector3.Dot(p2, p0)))
+            {
+                return x;
+            }
             Vector3 np01 = Vector3.Cross(p0, p1).normalized;
             Vector3 np12 = Vector3.Cross(p1, p2).normalized;
             Vector3 np20 = Vector3.Cross(p2, p0).normalized;
