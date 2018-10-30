@@ -14,6 +14,7 @@ public class VertexSelectorEditor : Editor
 
     private static Vector3 _pos;
     private static int _idx;
+    private static Vector3 _vtx;
 
     [MenuItem("Tools/VertexSelector", true)]
     static bool ValidateSceneViewCustomSceneMode()
@@ -121,7 +122,7 @@ public class VertexSelectorEditor : Editor
             Handles.color = Color.red;
             Handles.matrix = Matrix4x4.identity;
             Handles.CubeHandleCap(0, _pos, Quaternion.identity, 0.01f, EventType.Repaint);
-            Handles.Label(_pos + new Vector3(0, 0.02f, 0), string.Format("Vertex ID {0}, World Position {1}", _idx, _pos.ToString("F")));
+            Handles.Label(_pos + new Vector3(0, 0.02f, 0), string.Format("Vertex ID {0}, World Position {1} Model Position {2}", _idx, _pos.ToString("F"), _vtx.ToString("F")));
         }
         Selection.activeTransform = _selectedTransform;
         if (Event.current != null && Event.current.type == EventType.MouseDown && Tools.current == Tool.Move)
@@ -196,6 +197,7 @@ public class VertexSelectorEditor : Editor
                         {
                             _pos = minIntersectPosition;
                             _idx = minIntersectVertexIndex;
+                            _vtx = vertices[minIntersectVertexIndex];
                         }
                     }
                 }
@@ -259,6 +261,7 @@ public class VertexSelectorEditor : Editor
                         {
                             _pos = m2w.MultiplyPoint3x4(minIntersectPosition);
                             _idx = minIntersectVertexIndex;
+                            _vtx = vertices[minIntersectVertexIndex];
                         }
                     }
                 }
