@@ -95,18 +95,6 @@ public class VertexSelectorEditor : Editor
         Selection.activeTransform = _selectedTransform;
     }
 
-    private static Vector3 BoneToWorld(Transform[] bones, Matrix4x4[] bindPoses, BoneWeight bw, Vector3 vertex)
-    {
-        Vector4 v4 = vertex;
-        v4.w = 1;
-        Matrix4x4 m0 = bones[bw.boneIndex0].localToWorldMatrix*bindPoses[bw.boneIndex0];
-        Matrix4x4 m1 = bones[bw.boneIndex1].localToWorldMatrix*bindPoses[bw.boneIndex1];
-        Matrix4x4 m2 = bones[bw.boneIndex2].localToWorldMatrix*bindPoses[bw.boneIndex2];
-        Matrix4x4 m3 = bones[bw.boneIndex3].localToWorldMatrix*bindPoses[bw.boneIndex3];
-        Vector3 ret = m0* v4 * bw.weight0 + m1* v4 * bw.weight1 + m2* v4 * bw.weight2 + m3* v4 * bw.weight3;
-        return ret;
-    }
-
     float CheckIntersect(Vector3 v0, Vector3 v1, Vector3 v2, Ray ray, float maxDist, out Vector3 ip)
     {
 
@@ -169,9 +157,6 @@ public class VertexSelectorEditor : Editor
                     {
                         Mesh mesh = smr.sharedMesh;
                         Vector3[] vertices = mesh.vertices;
-                        BoneWeight[] boneWeights = mesh.boneWeights;
-                        Matrix4x4[] bindPoses = mesh.bindposes;
-                        Transform[] bones = smr.bones;
                         for (int s = 0, smax = mesh.subMeshCount; s < smax; s++)
                         {
                             int[] triangles = mesh.GetTriangles(s);
@@ -180,12 +165,9 @@ public class VertexSelectorEditor : Editor
                                 int i0 = triangles[t * 3];
                                 int i1 = triangles[t * 3 + 1];
                                 int i2 = triangles[t * 3 + 2];
-                                BoneWeight bw0 = boneWeights[i0];
-                                BoneWeight bw1 = boneWeights[i1];
-                                BoneWeight bw2 = boneWeights[i2];
-                                Vector3 v0 = BoneToWorld(bones, bindPoses, bw0, vertices[i0]);
-                                Vector3 v1 = BoneToWorld(bones, bindPoses, bw1, vertices[i1]);
-                                Vector3 v2 = BoneToWorld(bones, bindPoses, bw2, vertices[i2]);
+                                Vector3 v0 = smr.GetSkinnedVertex(i0);
+                                Vector3 v1 = smr.GetSkinnedVertex(i1);
+                                Vector3 v2 = smr.GetSkinnedVertex(i2);
                                 Vector3 ip;
                                 float x = CheckIntersect(v0, v1, v2, ray, minIntersectDistance, out ip);
                                 if (x >= minIntersectDistance)
