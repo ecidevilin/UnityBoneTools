@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using BoneTool.Script.Runtime;
+﻿using BoneTool.Script.Runtime;
+using Chaos;
 using UnityEditor;
 using UnityEngine;
 
@@ -42,11 +40,7 @@ public class VertexSelectorEditor : Editor
             }
             _selectedTransform = trans;
             _idx = -1;
-            VertexSelector com = _selectedTransform.GetComponent<VertexSelector>();
-            if (null == com)
-            {
-                com = _selectedTransform.gameObject.AddComponent<VertexSelector>();
-            }
+            VertexSelector com = _selectedTransform.GetOrAddComponent<VertexSelector>();
             EditorApplication.update += Update;
 #if DEBUG_VERTEX_SELECTOR
             SceneView view = SceneView.lastActiveSceneView;
@@ -62,11 +56,7 @@ public class VertexSelectorEditor : Editor
         }
         else
         {
-            VertexSelector com = _selectedTransform.GetComponent<VertexSelector>();
-            if (null != com)
-            {
-                VertexSelector.DestroyImmediate(com);
-            }
+            _selectedTransform.DestroyComponentImmediate<VertexSelector>();
             EditorApplication.update -= Update;
 
 #if DEBUG_VERTEX_SELECTOR
@@ -95,33 +85,27 @@ public class VertexSelectorEditor : Editor
         Selection.activeTransform = _selectedTransform;
     }
 
-    float CheckIntersect(Vector3 v0, Vector3 v1, Vector3 v2, Ray ray, float maxDist, out Vector3 ip)
+    private static int GetNearestPoint(Vector3 v0, Vector3 v1, Vector3 v2, Vector3 ip)
     {
 
-        Vector3 normal = Vector3.Cross(v0 - v1, v1 - v2).normalized;
-        float x = Vector3.Dot(normal, v1 - ray.origin) / Vector3.Dot(normal, ray.direction);
-        ip = ray.origin + x * ray.direction;
-        if (x > 0 && x < maxDist)
+        Vector3 p0 = ip - v0;
+        Vector3 p1 = ip - v1;
+        Vector3 p2 = ip - v2;
+        float sd0 = p0.sqrMagnitude;
+        float sd1 = p1.sqrMagnitude;
+        float sd2 = p2.sqrMagnitude;
+        if (sd0 < sd1 && sd0 < sd2)
         {
-            Vector3 p0 = (ip - v0).normalized;
-            Vector3 p1 = (ip - v1).normalized;
-            Vector3 p2 = (ip - v2).normalized;
-            if (Mathf.Approximately(-1, Vector3.Dot(p0, p1)) ||
-                Mathf.Approximately(-1, Vector3.Dot(p1, p2)) ||
-                Mathf.Approximately(-1, Vector3.Dot(p2, p0)))
-            {
-                return x;
-            }
-            Vector3 np01 = Vector3.Cross(p0, p1).normalized;
-            Vector3 np12 = Vector3.Cross(p1, p2).normalized;
-            Vector3 np20 = Vector3.Cross(p2, p0).normalized;
-            if (Mathf.Approximately(1, Vector3.Dot(np01, np12)) &&
-                Mathf.Approximately(1, Vector3.Dot(np12, np20)))
-            {
-                return x;
-            }
+            return 0;
         }
-        return float.MaxValue;
+        else if (sd1 < sd0 && sd1 < sd2)
+        {
+            return 1;
+        }
+        else
+        {
+            return 2;
+        }
     }
 
     private void OnSceneGUI()
@@ -169,32 +153,25 @@ public class VertexSelectorEditor : Editor
                                 Vector3 v1 = smr.GetSkinnedVertex(i1);
                                 Vector3 v2 = smr.GetSkinnedVertex(i2);
                                 Vector3 ip;
-                                float x = CheckIntersect(v0, v1, v2, ray, minIntersectDistance, out ip);
-                                if (x >= minIntersectDistance)
+                                if (!ray.CheckIntersect(v0, v1, v2, out ip, ref minIntersectDistance))
                                 {
                                     continue;
                                 }
-                                minIntersectDistance = x;
-                                Vector3 p0 = ip - v0;
-                                Vector3 p1 = ip - v1;
-                                Vector3 p2 = ip - v2;
-                                float sd0 = p0.sqrMagnitude;
-                                float sd1 = p1.sqrMagnitude;
-                                float sd2 = p2.sqrMagnitude;
-                                if (sd0 < sd1 && sd0 < sd2)
+                                switch (GetNearestPoint(v0, v1, v2, ip))
                                 {
-                                    minIntersectVertexIndex = i0;
-                                    minIntersectPosition = v0;
-                                }
-                                else if (sd1 < sd0 && sd1 < sd2)
-                                {
-                                    minIntersectVertexIndex = i1;
-                                    minIntersectPosition = v1;
-                                }
-                                else
-                                {
-                                    minIntersectVertexIndex = i2;
-                                    minIntersectPosition = v2;
+                                    case 0:
+                                        minIntersectVertexIndex = i0;
+                                        minIntersectPosition = v0;
+                                        break;
+                                    case 1:
+                                        minIntersectVertexIndex = i1;
+                                        minIntersectPosition = v1;
+                                        break;
+                                    case 2:
+                                    default:
+                                        minIntersectVertexIndex = i2;
+                                        minIntersectPosition = v2;
+                                        break;
                                 }
                             }
                         }
@@ -233,32 +210,25 @@ public class VertexSelectorEditor : Editor
                                 Vector3 v1 = vertices[i1];
                                 Vector3 v2 = vertices[i2];
                                 Vector3 ip;
-                                float x = CheckIntersect(v0, v1, v2, localRay, minIntersectDistance, out ip);
-                                if (x > minIntersectDistance)
+                                if (!localRay.CheckIntersect(v0, v1, v2, out ip, ref minIntersectDistance))
                                 {
                                     continue;
                                 }
-                                minIntersectDistance = x;
-                                Vector3 p0 = ip - v0;
-                                Vector3 p1 = ip - v1;
-                                Vector3 p2 = ip - v2;
-                                float sd0 = p0.sqrMagnitude;
-                                float sd1 = p1.sqrMagnitude;
-                                float sd2 = p2.sqrMagnitude;
-                                if (sd0 < sd1 && sd0 < sd2)
+                                switch (GetNearestPoint(v0, v1, v2, ip))
                                 {
-                                    minIntersectVertexIndex = i0;
-                                    minIntersectPosition = v0;
-                                }
-                                else if (sd1 < sd0 && sd1 < sd2)
-                                {
-                                    minIntersectVertexIndex = i1;
-                                    minIntersectPosition = v1;
-                                }
-                                else
-                                {
-                                    minIntersectVertexIndex = i2;
-                                    minIntersectPosition = v2;
+                                    case 0:
+                                        minIntersectVertexIndex = i0;
+                                        minIntersectPosition = v0;
+                                        break;
+                                    case 1:
+                                        minIntersectVertexIndex = i1;
+                                        minIntersectPosition = v1;
+                                        break;
+                                    case 2:
+                                    default:
+                                        minIntersectVertexIndex = i2;
+                                        minIntersectPosition = v2;
+                                        break;
                                 }
                             }
                         }
