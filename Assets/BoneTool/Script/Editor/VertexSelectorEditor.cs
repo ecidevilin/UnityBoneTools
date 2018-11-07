@@ -13,6 +13,7 @@ public class VertexSelectorEditor : Editor
     private static Vector3 _pos;
     private static int _idx;
     private static Vector3 _vtx;
+    private static BoneWeight _bws;
 #if DEBUG_VERTEX_SELECTOR
     private static Shader _shader;
 #endif
@@ -121,6 +122,7 @@ public class VertexSelectorEditor : Editor
             Handles.matrix = Matrix4x4.identity;
             Handles.CubeHandleCap(0, _pos, Quaternion.identity, 0.01f, EventType.Repaint);
             Handles.Label(_pos + new Vector3(0, 0.02f, 0), string.Format("Vertex ID {0}, World Position {1} Model Position {2}", _idx, _pos.ToString("F"), _vtx.ToString("F")));
+            Handles.Label(_pos + new Vector3(0, 0.01f, 0), string.Format("BoneWeights ({0}:{1}),({2}:{3}),({4}:{5}),({6}:{7})", _bws.boneIndex0, _bws.weight0, _bws.boneIndex1, _bws.weight1, _bws.boneIndex2, _bws.weight2, _bws.boneIndex3, _bws.weight3));
         }
         Selection.activeTransform = _selectedTransform;
         if (Event.current != null && Event.current.type == EventType.MouseDown && Tools.current == Tool.Move)
@@ -180,6 +182,7 @@ public class VertexSelectorEditor : Editor
                             _pos = minIntersectPosition;
                             _idx = minIntersectVertexIndex;
                             _vtx = vertices[minIntersectVertexIndex];
+                            _bws = mesh.boneWeights[minIntersectVertexIndex];
                         }
                     }
                 }
