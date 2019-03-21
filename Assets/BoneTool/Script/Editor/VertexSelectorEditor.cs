@@ -151,9 +151,9 @@ public class VertexSelectorEditor : Editor
                                 int i0 = triangles[t * 3];
                                 int i1 = triangles[t * 3 + 1];
                                 int i2 = triangles[t * 3 + 2];
-                                Vector3 v0 = smr.GetSkinnedVertex(i0);
-                                Vector3 v1 = smr.GetSkinnedVertex(i1);
-                                Vector3 v2 = smr.GetSkinnedVertex(i2);
+                                Vector3 v0 = smr.GetSkinnedVertexWS(i0);
+                                Vector3 v1 = smr.GetSkinnedVertexWS(i1);
+                                Vector3 v2 = smr.GetSkinnedVertexWS(i2);
                                 Vector3 ip;
                                 if (!ray.CheckIntersect(v0, v1, v2, out ip, ref minIntersectDistance))
                                 {
